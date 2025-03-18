@@ -1,16 +1,30 @@
-const db = require('../server').db;
-
 const Topic = {
-  getAllTopics: (callback) => {
+  getAllTopics: (db, callback) => {
     db.query('SELECT * FROM topics', callback);
   },
-  createTopic: (name, callback) => {
-    db.query('INSERT INTO topics (name, yes_votes, no_votes) VALUES (?, 0, 0)', [name], callback);
+  createTopic: (db, name, userId, callback) => {
+    db.query('INSERT INTO topics (name, created_by) VALUES (?, ?)', [name, userId], callback);
   },
-  vote: (topicId, vote, callback) => {
-    const voteColumn = vote === 'yes' ? 'yes_votes' : 'no_votes';
-    db.query(`UPDATE topics SET ${voteColumn} = ${voteColumn} + 1 WHERE id = ?`, [topicId], callback);
-  },
+  getVoteCounts: (db, topicId, callback) => {
+    db.query(
+      'SELECT COUNT(*) AS yes_votes FROM votes WHERE topic_id = ? AND vote = "yes"',
+      [topicId],
+      (err, yesResults) => {
+        if (err) return callback(err);
+        db.query(
+          'SELECT COUNT(*) AS no_votes FROM votes WHERE topic_id = ? AND vote = "no"',
+          [topicId],
+          (err, noResults) => {
+            if (err) return callback(err);
+            callback(null, {
+              yes_votes: yesResults[0].yes_votes,
+              no_votes: noResults[0].no_votes
+            });
+          }
+        );
+      }
+    );
+  }
 };
 
 module.exports = Topic;

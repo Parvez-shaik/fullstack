@@ -1,4 +1,5 @@
 const express = require('express');
+const Topic = require('../models/Topic');
 
 module.exports = function (db) {
   const router = express.Router();
@@ -14,7 +15,12 @@ module.exports = function (db) {
       'INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, "user")',
       [username, email, password],
       (err) => {
-        if (err) return res.status(500).json({ error: err.message });
+        if (err) {
+          if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({ message: 'Email already registered' });
+          }
+          return res.status(500).json({ error: 'Registration failed' });
+        }
         res.status(201).json({ message: 'User registered successfully' });
       }
     );
@@ -23,26 +29,38 @@ module.exports = function (db) {
   // Login
   router.post('/login', (req, res) => {
     const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
 
     db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
-      if (err) return res.status(500).json({ error: err.message });
+      if (err) return res.status(500).json({ error: 'Login failed' });
       if (results.length === 0) return res.status(400).json({ message: 'User not found' });
 
       const user = results[0];
-
       if (password !== user.password) {
         return res.status(400).json({ message: 'Invalid password' });
       }
 
-      req.session.user = { id: user.id, email: user.email, username: user.username, role: user.role };
+      req.session.user = { 
+        id: user.id, 
+        email: user.email, 
+        username: user.username, 
+        role: user.role 
+      };
       res.status(200).json({ message: 'Login successful', user: req.session.user });
     });
   });
 
+  // Get current session
+  router.get('/session', (req, res) => {
+    res.json({ user: req.session.user || null });
+  });
 
   // Logout
   router.post('/logout', (req, res) => {
-    req.session.destroy(() => {
+    req.session.destroy((err) => {
+      if (err) return res.status(500).json({ error: 'Logout failed' });
       res.status(200).json({ message: 'Logged out successfully' });
     });
   });
@@ -55,28 +73,22 @@ module.exports = function (db) {
 
     const { name } = req.body;
     if (!name) {
-      return res.status(400).json({ error: 'Topic name is required' });
+      return res.status(400).json({ message: 'Topic name is required' });
     }
 
-    db.query(
-      'INSERT INTO topics (name, created_by) VALUES (?, ?)',
-      [name, req.session.user.id],
-      (err, result) => {
-        if (err) return res.status(500).json({ error: 'Error adding topic' });
-        res.status(201).json({ id: result.insertId, name });
-      }
-    );
+    Topic.createTopic(db, name, req.session.user.id, (err, result) => {
+      if (err) return res.status(500).json({ error: 'Error creating topic' });
+      res.status(201).json({ id: result.insertId, name });
+    });
   });
 
   // Get all topics
-// Express route to get topics
-router.get('/topics', (req, res) => {
-  db.query('SELECT * FROM topics', (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.status(200).json(results);
+  router.get('/topics', (req, res) => {
+    Topic.getAllTopics(db, (err, results) => {
+      if (err) return res.status(500).json({ error: 'Error fetching topics' });
+      res.status(200).json(results);
+    });
   });
-});
-
 
   // User votes on a topic (Yes/No)
   router.post('/vote', (req, res) => {
@@ -94,7 +106,7 @@ router.get('/topics', (req, res) => {
       'SELECT * FROM votes WHERE user_id = ? AND topic_id = ?',
       [req.session.user.id, topicId],
       (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
+        if (err) return res.status(500).json({ error: 'Error checking vote' });
 
         if (results.length > 0) {
           return res.status(400).json({ message: 'You have already voted on this topic' });
@@ -105,7 +117,7 @@ router.get('/topics', (req, res) => {
           'INSERT INTO votes (user_id, topic_id, vote) VALUES (?, ?, ?)',
           [req.session.user.id, topicId, vote],
           (err) => {
-            if (err) return res.status(500).json({ error: err.message });
+            if (err) return res.status(500).json({ error: 'Error recording vote' });
             res.status(200).json({ message: 'Vote recorded successfully' });
           }
         );
@@ -116,28 +128,13 @@ router.get('/topics', (req, res) => {
   // Get vote results for a topic
   router.get('/votes/:topicId', (req, res) => {
     const { topicId } = req.params;
-
-    db.query(
-      'SELECT COUNT(*) AS yes_votes FROM votes WHERE topic_id = ? AND vote = "yes"',
-      [topicId],
-      (err, yesResults) => {
-        if (err) return res.status(500).json({ error: err.message });
-
-        db.query(
-          'SELECT COUNT(*) AS no_votes FROM votes WHERE topic_id = ? AND vote = "no"',
-          [topicId],
-          (err, noResults) => {
-            if (err) return res.status(500).json({ error: err.message });
-
-            res.json({
-              topicId,
-              yes_votes: yesResults[0].yes_votes,
-              no_votes: noResults[0].no_votes,
-            });
-          }
-        );
-      }
-    );
+    Topic.getVoteCounts(db, topicId, (err, results) => {
+      if (err) return res.status(500).json({ error: 'Error fetching vote counts' });
+      res.json({
+        topicId,
+        ...results
+      });
+    });
   });
 
   return router;
