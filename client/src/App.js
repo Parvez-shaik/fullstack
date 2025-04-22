@@ -11,8 +11,7 @@ const AppContent = () => {
 
   return (
     <div className="app-container">
-      <h1>My Voting App</h1>
-
+      <h1>Smart Poll</h1>
       {!user ? (
         <div className="auth-container">
           <LoginForm />
@@ -32,20 +31,20 @@ const AppContent = () => {
         <h4>Our Team</h4>
         <div className="team-members">
           <div className="team-member">
-            <span className="member-name">John Doe</span>
+            <span className="member-name">Yashwanth Gundla</span>
             <span className="member-role">Frontend Developer</span>
           </div>
           <div className="team-member">
-            <span className="member-name">Jane Smith</span>
+            <span className="member-name">Jayasairohit Valasapalli</span>
             <span className="member-role">Backend Developer</span>
           </div>
           <div className="team-member">
-            <span className="member-name">Mike Johnson</span>
-            <span className="member-role">UI/UX Designer</span>
+            <span className="member-name">Akhila Gotike</span>
+            <span className="member-role">Tester</span>
           </div>
           <div className="team-member">
-            <span className="member-name">Sarah Wilson</span>
-            <span className="member-role">Project Manager</span>
+            <span className="member-name">Tharun Javaji</span>
+            <span className="member-role">Quailty Assurance</span>
           </div>
         </div>
       </div>

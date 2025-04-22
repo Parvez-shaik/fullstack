@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const mysql = require('mysql2');
+const { Pool } = require('pg');
 const session = require('express-session');
 const topicRoutes = require('./routes/api');
 
@@ -9,7 +9,7 @@ const port = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: process.env.NODE_ENV === 'production' ? '*' : 'http://localhost:3000',
   credentials: true,
 }));
 
@@ -28,20 +28,19 @@ app.use(session({
 }));
 
 // Database configuration
-const db = mysql.createConnection({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '123786',
-  database: process.env.DB_NAME || 'voting_app',
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/voting_app',
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-// Connect to database
-db.connect((err) => {
+// Test database connection
+pool.connect((err, client, release) => {
   if (err) {
     console.error('Error connecting to the database:', err);
     process.exit(1);
   }
   console.log('Connected to the database!');
+  release();
 });
 
 // Error handling middleware
@@ -55,7 +54,7 @@ app.get('/', (req, res) => {
   res.send('Welcome to the Voting App API');
 });
 
-app.use('/api', topicRoutes(db));
+app.use('/api', topicRoutes(pool));
 
 // Start server
 app.listen(port, () => {
