@@ -14,20 +14,19 @@ app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? 'https://voting-app-frontend-jaj1.onrender.com'
     : 'http://localhost:3000',
-  credentials: true,
+  credentials: true
 }));
 
 app.use(express.json());
 
 // Session configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'secureSessionKey',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  cookie: { 
+  cookie: {
     secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    sameSite: 'none'
   }
 }));
 

@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-
-const API_URL = "http://localhost:5000/api";
+import { API_ENDPOINTS } from '../config';
 
 export const useVoting = () => {
   const [topics, setTopics] = useState([]);
   const [votes, setVotes] = useState({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -16,18 +16,18 @@ export const useVoting = () => {
 
   const fetchTopics = async () => {
     try {
-      const response = await axios.get(`${API_URL}/topics`);
+      const response = await axios.get(API_ENDPOINTS.topics);
       setTopics(response.data);
       setLoading(false);
-    } catch (error) {
-      console.error("Error fetching topics:", error);
+    } catch (err) {
+      setError(err.message);
       setLoading(false);
     }
   };
 
   const fetchVotes = async (topicId) => {
     try {
-      const response = await axios.get(`${API_URL}/votes/${topicId}`);
+      const response = await axios.get(`${API_ENDPOINTS.votes}/${topicId}`);
       setVotes((prev) => ({
         ...prev,
         [topicId]: response.data,
@@ -44,7 +44,7 @@ export const useVoting = () => {
 
     try {
       await axios.post(
-        `${API_URL}/topics`,
+        `${API_ENDPOINTS.topics}`,
         { name: topicName },
         { withCredentials: true }
       );
@@ -62,7 +62,7 @@ export const useVoting = () => {
 
     try {
       await axios.post(
-        `${API_URL}/vote`,
+        `${API_ENDPOINTS.vote}`,
         { topicId, vote },
         { withCredentials: true }
       );
@@ -80,6 +80,7 @@ export const useVoting = () => {
     topics,
     votes,
     loading,
+    error,
     fetchVotes,
     createTopic,
     vote,
