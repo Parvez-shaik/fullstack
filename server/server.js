@@ -3,6 +3,8 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const session = require('express-session');
 const topicRoutes = require('./routes/api');
+const path = require('path');
+require('dotenv').config({ path: path.resolve(process.cwd(), '.env') });
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -29,7 +31,7 @@ app.use(session({
 
 // Database configuration
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/voting_app',
+  connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
