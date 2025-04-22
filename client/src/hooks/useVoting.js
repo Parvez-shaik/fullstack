@@ -3,6 +3,10 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { API_ENDPOINTS } from '../config';
 
+// Configure axios defaults
+axios.defaults.withCredentials = true;
+axios.defaults.headers.common['Content-Type'] = 'application/json';
+
 export const useVoting = () => {
   const [topics, setTopics] = useState([]);
   const [votes, setVotes] = useState({});
@@ -56,13 +60,7 @@ export const useVoting = () => {
     try {
       const response = await axios.post(
         API_ENDPOINTS.topics,
-        { name: topicName },
-        { 
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
+        { name: topicName }
       );
       await fetchTopics();
       return { success: true };

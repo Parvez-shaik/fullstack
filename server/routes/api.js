@@ -55,6 +55,11 @@ module.exports = function (pool) {
 
   // Get current session
   router.get('/session', (req, res) => {
+    console.log('Session check:', {
+      sessionId: req.sessionID,
+      user: req.session.user,
+      cookies: req.headers.cookie
+    });
     res.json({ user: req.session.user || null });
   });
 
@@ -68,7 +73,20 @@ module.exports = function (pool) {
 
   // Admin creates a new topic
   router.post('/topics', (req, res) => {
-    if (!req.session.user || req.session.user.role !== 'admin') {
+    console.log('Create topic request:', {
+      sessionId: req.sessionID,
+      user: req.session.user,
+      cookies: req.headers.cookie,
+      body: req.body
+    });
+
+    if (!req.session.user) {
+      console.log('No user in session');
+      return res.status(401).json({ message: 'Not logged in' });
+    }
+
+    if (req.session.user.role !== 'admin') {
+      console.log('User is not admin:', req.session.user);
       return res.status(403).json({ message: 'Unauthorized. Admins only.' });
     }
 
@@ -78,7 +96,10 @@ module.exports = function (pool) {
     }
 
     Topic.createTopic(pool, name, req.session.user.id, (err, result) => {
-      if (err) return res.status(500).json({ error: 'Error creating topic' });
+      if (err) {
+        console.error('Error creating topic:', err);
+        return res.status(500).json({ error: 'Error creating topic' });
+      }
       res.status(201).json({ id: result.insertId, name });
     });
   });
