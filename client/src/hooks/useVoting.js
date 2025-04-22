@@ -45,24 +45,32 @@ export const useVoting = () => {
   };
 
   const createTopic = async (topicName) => {
-    if (!user || user.role !== "admin") {
-      throw new Error("Only admins can create topics");
+    if (!user) {
+      return { success: false, error: "Please log in to create topics" };
+    }
+
+    if (user.role !== "admin") {
+      return { success: false, error: "Only admins can create topics" };
     }
 
     try {
-      await axios.post(
+      const response = await axios.post(
         API_ENDPOINTS.topics,
         { name: topicName },
-        { withCredentials: true }
+        { 
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
       );
       await fetchTopics();
       return { success: true };
     } catch (error) {
       console.error('Error creating topic:', error);
-      return { 
-        success: false, 
-        error: error.response?.data?.message || "Failed to create topic" 
-      };
+      const errorMessage = error.response?.data?.message || 
+                         (error.response?.status === 403 ? "You don't have permission to create topics" : "Failed to create topic");
+      return { success: false, error: errorMessage };
     }
   };
 
