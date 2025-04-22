@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
         setUser(response.data.user);
       }
     } catch (error) {
-      console.log("No user logged in");
+      console.error('Session fetch error:', error);
     } finally {
       setLoading(false);
     }
@@ -34,10 +34,19 @@ export const AuthProvider = ({ children }) => {
         { email, password },
         { withCredentials: true }
       );
-      setUser(response.data.user);
-      return { success: true };
+      
+      if (response.data.user) {
+        setUser(response.data.user);
+        return { success: true };
+      } else {
+        return { success: false, error: "Login failed - no user data received" };
+      }
     } catch (error) {
-      return { success: false, error: error.response?.data?.message || "Login failed" };
+      console.error('Login error:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || "Login failed" 
+      };
     }
   };
 

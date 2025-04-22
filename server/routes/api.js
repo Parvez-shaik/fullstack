@@ -47,21 +47,31 @@ module.exports = function (pool) {
 
     try {
       const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-      if (result.rows.length === 0) return res.status(400).json({ message: 'User not found' });
+      if (result.rows.length === 0) {
+        return res.status(400).json({ message: 'User not found' });
+      }
 
       const user = result.rows[0];
       if (password !== user.password) {
         return res.status(400).json({ message: 'Invalid password' });
       }
 
-      req.session.user = { 
-        id: user.id, 
-        email: user.email, 
-        username: user.username, 
-        role: user.role 
+      // Set session
+      req.session.user = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role
       };
-      res.json({ message: 'Login successful', user: req.session.user });
+
+      console.log('Login successful, session set:', req.session.user);
+
+      res.json({ 
+        message: 'Login successful',
+        user: req.session.user
+      });
     } catch (err) {
+      console.error('Login error:', err);
       return res.status(500).json({ error: 'Login failed' });
     }
   });
