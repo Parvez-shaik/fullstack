@@ -41,12 +41,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (username, email, password) => {
+  const register = async (username, email, password, role = 'user') => {
     try {
-      await axios.post(API_ENDPOINTS.register, { username, email, password });
+      const response = await axios.post(
+        API_ENDPOINTS.register,
+        { username, email, password, role },
+        { withCredentials: true }
+      );
+      if (response.data.user) {
+        setUser(response.data.user);
+      }
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.response?.data?.message || "Registration failed" };
+      return { 
+        success: false, 
+        error: error.response?.data?.message || "Registration failed" 
+      };
     }
   };
 

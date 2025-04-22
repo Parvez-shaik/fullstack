@@ -4,9 +4,9 @@ const Topic = require('../models/Topic');
 module.exports = function (pool) {
   const router = express.Router();
 
-  // Register a new user (defaults to a regular user)
+  // Register a new user
   router.post('/register', async (req, res) => {
-    const { username, email, password } = req.body;
+    const { username, email, password, role = 'user' } = req.body;
     if (!username || !email || !password) {
       return res.status(400).json({ message: 'All fields are required' });
     }
@@ -14,13 +14,26 @@ module.exports = function (pool) {
     try {
       const result = await pool.query(
         'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING *',
-        [username, email, password, 'user']
+        [username, email, password, role]
       );
-      res.status(201).json({ message: 'User registered successfully' });
+      
+      // Set session for the newly registered user
+      req.session.user = {
+        id: result.rows[0].id,
+        username: result.rows[0].username,
+        email: result.rows[0].email,
+        role: result.rows[0].role
+      };
+      
+      res.status(201).json({ 
+        message: 'User registered successfully',
+        user: req.session.user
+      });
     } catch (err) {
       if (err.code === '23505') { // PostgreSQL unique violation
         return res.status(400).json({ message: 'Email already registered' });
       }
+      console.error('Registration error:', err);
       return res.status(500).json({ error: 'Registration failed' });
     }
   });
