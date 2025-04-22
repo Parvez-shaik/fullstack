@@ -16,24 +16,31 @@ export const useVoting = () => {
 
   const fetchTopics = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const response = await axios.get(API_ENDPOINTS.topics);
-      setTopics(response.data);
-      setLoading(false);
+      
+      // Ensure response.data is an array
+      const topicsData = Array.isArray(response.data) ? response.data : [];
+      setTopics(topicsData);
     } catch (err) {
-      setError(err.message);
+      console.error('Error fetching topics:', err);
+      setError(err.response?.data?.message || 'Failed to fetch topics');
+    } finally {
       setLoading(false);
     }
   };
 
   const fetchVotes = async (topicId) => {
     try {
-      const response = await axios.get(`${API_ENDPOINTS.votes}/${topicId}`);
+      const response = await axios.get(API_ENDPOINTS.votes(topicId));
       setVotes((prev) => ({
         ...prev,
         [topicId]: response.data,
       }));
     } catch (error) {
       console.error("Error fetching votes:", error);
+      setError(error.response?.data?.message || 'Failed to fetch votes');
     }
   };
 
@@ -44,14 +51,18 @@ export const useVoting = () => {
 
     try {
       await axios.post(
-        `${API_ENDPOINTS.topics}`,
+        API_ENDPOINTS.topics,
         { name: topicName },
         { withCredentials: true }
       );
       await fetchTopics();
       return { success: true };
     } catch (error) {
-      return { success: false, error: "Failed to create topic" };
+      console.error('Error creating topic:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || "Failed to create topic" 
+      };
     }
   };
 
@@ -62,13 +73,14 @@ export const useVoting = () => {
 
     try {
       await axios.post(
-        `${API_ENDPOINTS.vote}`,
+        API_ENDPOINTS.vote,
         { topicId, vote },
         { withCredentials: true }
       );
       await fetchVotes(topicId);
       return { success: true };
     } catch (error) {
+      console.error('Error voting:', error);
       return { 
         success: false, 
         error: error.response?.data?.message || "Voting failed" 

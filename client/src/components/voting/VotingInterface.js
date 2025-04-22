@@ -4,7 +4,7 @@ import { useVoting } from '../../hooks/useVoting';
 
 const VotingInterface = () => {
   const { user } = useAuth();
-  const { topics, votes, loading, createTopic, vote, fetchVotes } = useVoting();
+  const { topics, votes, loading, error: votingError, createTopic, vote, fetchVotes } = useVoting();
   const [topicName, setTopicName] = useState('');
   const [error, setError] = useState('');
 
@@ -35,6 +35,13 @@ const VotingInterface = () => {
     return <p>Loading topics...</p>;
   }
 
+  if (votingError) {
+    return <p className="error-message">Error loading topics: {votingError}</p>;
+  }
+
+  // Ensure topics is an array before mapping
+  const topicsList = Array.isArray(topics) ? topics : [];
+
   return (
     <div className="voting-interface">
       {error && <div className="error-message">{error}</div>}
@@ -56,11 +63,11 @@ const VotingInterface = () => {
       )}
 
       <h2>Topics</h2>
-      {topics.length === 0 ? (
+      {topicsList.length === 0 ? (
         <p>No topics available</p>
       ) : (
         <ul className="topics-list">
-          {topics.map((topic) => (
+          {topicsList.map((topic) => (
             <li key={topic.id} className="topic-item">
               <strong>{topic.name}</strong>
               <div className="vote-buttons">
