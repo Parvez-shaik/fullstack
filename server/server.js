@@ -12,7 +12,7 @@ const port = process.env.PORT || 5000;
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://voting-app-frontend.onrender.com', 'http://localhost:3000']
+    ? 'https://voting-app-frontend-jaj1.onrender.com'
     : 'http://localhost:3000',
   credentials: true,
 }));

@@ -1,9 +1,8 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config';
 
 const AuthContext = createContext(null);
-
-const API_URL = "http://localhost:5000/api";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -15,7 +14,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserSession = async () => {
     try {
-      const response = await axios.get(`${API_URL}/session`, {
+      const response = await axios.get(`${API_URL}/api/session`, {
         withCredentials: true,
       });
       if (response.data.user) {
@@ -31,7 +30,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await axios.post(
-        `${API_URL}/login`,
+        `${API_URL}/api/login`,
         { email, password },
         { withCredentials: true }
       );
@@ -44,7 +43,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (username, email, password) => {
     try {
-      await axios.post(`${API_URL}/register`, { username, email, password });
+      await axios.post(`${API_URL}/api/register`, { username, email, password });
       return { success: true };
     } catch (error) {
       return { success: false, error: error.response?.data?.message || "Registration failed" };
@@ -53,11 +52,10 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.post(`${API_URL}/logout`, {}, { withCredentials: true });
+      await axios.post(`${API_URL}/api/logout`, {}, { withCredentials: true });
       setUser(null);
-      return { success: true };
     } catch (error) {
-      return { success: false, error: "Logout failed" };
+      console.error("Logout failed:", error);
     }
   };
 
