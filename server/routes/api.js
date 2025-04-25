@@ -40,6 +40,7 @@ module.exports = function (pool) {
 
   // Login
   router.post('/login', async (req, res) => {
+    console.log('Session cookie set:', req.sessionID);
     const { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
@@ -124,6 +125,7 @@ module.exports = function (pool) {
 
   // Admin creates a new topic
   router.post('/topics', async (req, res) => {
+    console.log('Request received with session:', req.session.user);
     console.log('Create topic request:', {
       sessionId: req.sessionID,
       user: req.session.user,
@@ -160,6 +162,7 @@ module.exports = function (pool) {
 
   // User votes on a topic
   router.post('/vote', async (req, res) => {
+    console.log('Request received with session:', req.session.user);
     if (!req.session.user) {
       return res.status(401).json({ message: 'User not logged in' });
     }

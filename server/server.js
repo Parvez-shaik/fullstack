@@ -50,7 +50,7 @@ app.use(session({
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    domain: process.env.NODE_ENV === 'production' ? '.render.com' : undefined
+    //domain: process.env.NODE_ENV === 'production' ? '.render.com' : undefined
   }
 }));
 
