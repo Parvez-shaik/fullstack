@@ -23,7 +23,14 @@ export const useVoting = () => {
       setLoading(true);
       setError(null);
       console.log('Fetching topics from:', API_ENDPOINTS.topics);
-      const response = await axios.get(API_ENDPOINTS.topics);
+      
+      const response = await axios.get(API_ENDPOINTS.topics, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
       console.log('Topics response:', response.data);
       
       if (response.data && Array.isArray(response.data)) {
@@ -34,6 +41,11 @@ export const useVoting = () => {
       }
     } catch (err) {
       console.error('Error fetching topics:', err);
+      if (err.response) {
+        console.error('Error response:', err.response.data);
+        console.error('Error status:', err.response.status);
+        console.error('Error headers:', err.response.headers);
+      }
       setError(err.response?.data?.error || err.message || 'Failed to fetch topics');
     } finally {
       setLoading(false);

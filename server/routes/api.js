@@ -130,6 +130,9 @@ module.exports = function (pool) {
   // Get all topics
   router.get('/topics', async (req, res) => {
     try {
+      console.log('Topics request - Session:', req.session);
+      console.log('Topics request - Headers:', req.headers);
+      
       const result = await pool.query(`
         SELECT 
           t.id,
@@ -141,6 +144,7 @@ module.exports = function (pool) {
         JOIN users u ON t.created_by = u.id
         ORDER BY t.created_at DESC
       `);
+      console.log('Topics query result:', result.rows);
       res.json(result.rows);
     } catch (err) {
       console.error('Error fetching topics:', err);
