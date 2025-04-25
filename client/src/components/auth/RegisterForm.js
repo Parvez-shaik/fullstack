@@ -5,7 +5,6 @@ const RegisterForm = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('user');
   const [error, setError] = useState('');
   const { register } = useAuth();
 
@@ -13,7 +12,7 @@ const RegisterForm = () => {
     e.preventDefault();
     setError('');
     
-    const result = await register(username, email, password, role);
+    const result = await register(username, email, password);
     if (!result.success) {
       setError(result.error);
     } else {
@@ -53,13 +52,6 @@ const RegisterForm = () => {
             required
           />
         </div>
-        <select
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-        >
-          <option value="user">Regular User</option>
-          <option value="admin">Admin</option>
-        </select>
         <button type="submit">Register</button>
       </form>
     </div>

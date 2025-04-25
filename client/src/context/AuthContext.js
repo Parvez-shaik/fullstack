@@ -50,21 +50,24 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (username, email, password, role = 'user') => {
+  const register = async (username, email, password) => {
     try {
       const response = await axios.post(
-        API_ENDPOINTS.register,
-        { username, email, password, role },
+        `${API_ENDPOINTS.register}`,
+        { username, email, password, role: 'user' },
         { withCredentials: true }
       );
+      
       if (response.data.user) {
         setUser(response.data.user);
+        return { success: true };
       }
-      return { success: true };
+      return { success: false, error: 'Registration failed' };
     } catch (error) {
+      console.error('Registration error:', error);
       return { 
         success: false, 
-        error: error.response?.data?.message || "Registration failed" 
+        error: error.response?.data?.message || 'Registration failed' 
       };
     }
   };

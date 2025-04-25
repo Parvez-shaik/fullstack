@@ -128,11 +128,24 @@ module.exports = function (pool) {
   });
 
   // Get all topics
-  router.get('/topics', (req, res) => {
-    Topic.getAllTopics(pool, (err, results) => {
-      if (err) return res.status(500).json({ error: 'Error fetching topics' });
-      res.status(200).json(results);
-    });
+  router.get('/topics', async (req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT 
+          t.id,
+          t.name,
+          t.created_at,
+          u.username as created_by_username,
+          u.role as creator_role
+        FROM topics t
+        JOIN users u ON t.created_by = u.id
+        ORDER BY t.created_at DESC
+      `);
+      res.json(result.rows);
+    } catch (err) {
+      console.error('Error fetching topics:', err);
+      res.status(500).json({ error: 'Error fetching topics' });
+    }
   });
 
   // User votes on a topic (Yes/No)
@@ -142,7 +155,7 @@ module.exports = function (pool) {
     }
 
     const { topicId, vote } = req.body;
-    if (!topicId || (vote !== 'yes' && vote !== 'no')) {
+    if (!topicId || (vote !== 1 && vote !== 0)) {
       return res.status(400).json({ message: 'Invalid vote input' });
     }
 

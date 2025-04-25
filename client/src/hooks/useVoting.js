@@ -22,14 +22,19 @@ export const useVoting = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('Fetching topics from:', API_ENDPOINTS.topics);
       const response = await axios.get(API_ENDPOINTS.topics);
+      console.log('Topics response:', response.data);
       
-      // Ensure response.data is an array
-      const topicsData = Array.isArray(response.data) ? response.data : [];
-      setTopics(topicsData);
+      if (response.data && Array.isArray(response.data)) {
+        setTopics(response.data);
+      } else {
+        console.error('Invalid topics data format:', response.data);
+        setError('Invalid data format received from server');
+      }
     } catch (err) {
       console.error('Error fetching topics:', err);
-      setError(err.response?.data?.message || 'Failed to fetch topics');
+      setError(err.response?.data?.error || err.message || 'Failed to fetch topics');
     } finally {
       setLoading(false);
     }
@@ -72,7 +77,7 @@ export const useVoting = () => {
     }
   };
 
-  const vote = async (topicId, vote) => {
+  const vote = async (topicId, voteType) => {
     if (!user) {
       throw new Error("Please log in to vote");
     }
@@ -80,7 +85,7 @@ export const useVoting = () => {
     try {
       await axios.post(
         API_ENDPOINTS.vote,
-        { topicId, vote },
+        { topicId, vote: voteType === 'yes' ? 1 : 0 },
         { withCredentials: true }
       );
       await fetchVotes(topicId);
