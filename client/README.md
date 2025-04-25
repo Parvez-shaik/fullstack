@@ -1,70 +1,178 @@
-# Getting Started with Create React App
+# Smart Poll - Voting Application
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern, full-stack voting application built with the PERN stack (PostgreSQL, Express.js, React, Node.js). This application allows users to create polls, vote on topics, and view real-time results.
 
-## Available Scripts
+![Voting App Screenshot](client/public/screenshot.png)
 
-In the project directory, you can run:
+## Features
 
-### `npm start`
+- 🔐 User Authentication (Register/Login)
+- 📊 Create and Manage Voting Topics
+- 🗳️ Cast Votes on Topics
+- 📈 Real-time Vote Results
+- 👥 User Role Management (Admin/User)
+- 🔒 Secure JWT Authentication
+- 🌐 Responsive Design
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Tech Stack
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Frontend
+- React.js
+- React Router
+- Axios
+- CSS3
 
-### `npm test`
+### Backend
+- Node.js
+- Express.js
+- PostgreSQL
+- JWT (JSON Web Tokens)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Prerequisites
 
-### `npm run build`
+- Node.js (v14 or higher)
+- npm (v6 or higher)
+- PostgreSQL (v12 or higher)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Installation
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. Clone the repository
+```bash
+git clone https://github.com/yourusername/smart-poll.git
+cd smart-poll
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2. Install backend dependencies
+```bash
+cd server
+npm install
+```
 
-### `npm run eject`
+3. Install frontend dependencies
+```bash
+cd ../client
+npm install
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+4. Set up environment variables
+Create a `.env` file in the server directory:
+```env
+PORT=5000
+DATABASE_URL=your_postgresql_database_url
+JWT_SECRET=your_secret_key
+NODE_ENV=production
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+5. Initialize the database
+```bash
+cd server
+psql -U your_db_user -d voting_app -f init-db.sql
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Running the Application
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+1. Start the backend server
+```bash
+cd server
+npm start
+```
 
-## Learn More
+2. Start the frontend development server
+```bash
+cd client
+npm start
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+The application will be available at:
+- Frontend: http://localhost:3000
+- Backend: http://localhost:5000
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Deployment
 
-### Code Splitting
+This application is configured for easy deployment on Render.com. The `render.yaml` files in both client and server directories contain the necessary configuration.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Backend Deployment
+1. Create a new Web Service on Render
+2. Connect your GitHub repository
+3. Select the server directory
+4. Set environment variables
+5. Deploy
 
-### Analyzing the Bundle Size
+### Frontend Deployment
+1. Create a new Static Site on Render
+2. Connect your GitHub repository
+3. Select the client directory
+4. Set environment variables
+5. Deploy
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## API Endpoints
 
-### Making a Progressive Web App
+### Authentication
+- `POST /api/register` - Register a new user
+- `POST /api/login` - Login user
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Topics
+- `GET /api/topics` - Get all topics
+- `POST /api/topics` - Create a new topic (Admin only)
 
-### Advanced Configuration
+### Voting
+- `POST /api/vote` - Cast a vote
+- `GET /api/votes/:topicId` - Get vote results for a topic
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## Database Schema
 
-### Deployment
+### Users Table
+```sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### Topics Table
+```sql
+CREATE TABLE topics (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    created_by INTEGER REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
 
-### `npm run build` fails to minify
+### Votes Table
+```sql
+CREATE TABLE votes (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    topic_id INTEGER REFERENCES topics(id),
+    vote INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, topic_id)
+);
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Contributing
+
+This project is a solo project completed entirely by **Parvez Shaik**.
+
+If you find improvements, feel free to fork the repository, make changes, and submit a pull request.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Developed By
+
+- **Parvez Shaik** - Full Stack Developer
+
+## Acknowledgments
+
+- Express.js documentation
+- React documentation
+- PostgreSQL documentation
+- Render.com documentation
+
