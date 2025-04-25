@@ -30,15 +30,24 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // CORS configuration
+// app.use(cors({
+//   origin: process.env.NODE_ENV === 'production' 
+//     ? ['https://voting-app-frontend-jaj1.onrender.com', 'https://voting-app-backend-b7co.onrender.com']
+//     : 'http://localhost:3000',
+//   credentials: true,
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+//   exposedHeaders: ['Set-Cookie']
+// }));
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://voting-app-frontend-jaj1.onrender.com', 'https://voting-app-backend-b7co.onrender.com']
-    : 'http://localhost:3000',
+  origin: ['https://voting-app-frontend-jaj1.onrender.com'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   exposedHeaders: ['Set-Cookie']
 }));
+
 
 // Session configuration
 app.use(session({
@@ -46,12 +55,12 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: true, // required for HTTPS
+    sameSite: 'none', // allows cross-site
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    //domain: process.env.NODE_ENV === 'production' ? '.render.com' : undefined
-  }
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    // 🔴 DO NOT add domain
+  }  
 }));
 
 // Error handling middleware

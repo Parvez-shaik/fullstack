@@ -40,7 +40,7 @@ module.exports = function (pool) {
 
   // Login
   router.post('/login', async (req, res) => {
-    console.log('Session cookie set:', req.sessionID);
+    console.log('Login endpoint hit');
     const { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
@@ -79,6 +79,8 @@ module.exports = function (pool) {
 
   // Get current session
   router.get('/session', (req, res) => {
+    console.log('Session check hit');
+    console.log('Session user:', req.session.user);
     console.log('Session check:', {
       sessionId: req.sessionID,
       user: req.session.user,
