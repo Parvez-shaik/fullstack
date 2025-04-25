@@ -11,7 +11,7 @@ A modern, full-stack voting application built with the PERN stack (PostgreSQL, E
 - 🗳️ Cast Votes on Topics
 - 📈 Real-time Vote Results
 - 👥 User Role Management (Admin/User)
-- 🔒 Secure Session Management
+- 🔒 Secure JWT Authentication
 - 🌐 Responsive Design
 
 ## Tech Stack
@@ -26,7 +26,7 @@ A modern, full-stack voting application built with the PERN stack (PostgreSQL, E
 - Node.js
 - Express.js
 - PostgreSQL
-- Express Session
+- JWT (JSON Web Tokens)
 
 ## Prerequisites
 
@@ -58,11 +58,9 @@ npm install
 Create a `.env` file in the server directory:
 ```env
 PORT=5000
-DB_HOST=localhost
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-DB_NAME=voting_app
-SESSION_SECRET=your_secret_key
+DATABASE_URL=your_postgresql_database_url
+JWT_SECRET=your_secret_key
+NODE_ENV=production
 ```
 
 5. Initialize the database
@@ -112,7 +110,6 @@ This application is configured for easy deployment on Render.com. The `render.ya
 ### Authentication
 - `POST /api/register` - Register a new user
 - `POST /api/login` - Login user
-- `POST /api/logout` - Logout user
 
 ### Topics
 - `GET /api/topics` - Get all topics
@@ -160,26 +157,22 @@ CREATE TABLE votes (
 
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+This project is a solo project completed entirely by **Parvez Shaik**.
+
+If you find improvements, feel free to fork the repository, make changes, and submit a pull request.
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Team
+## Developed By
 
-- Yashwanth Gundla - Frontend Developer
-- Jayasairohit Valasapalli - Backend Developer
-- Akhila Gotike - Tester
-- Tharun Javaji - Quality Assurance
+- **Parvez Shaik** - Full Stack Developer
 
 ## Acknowledgments
 
 - Express.js documentation
 - React documentation
 - PostgreSQL documentation
-- Render.com documentation 
+- Render.com documentation
+
