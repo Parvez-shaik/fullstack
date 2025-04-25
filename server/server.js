@@ -48,7 +48,6 @@ app.use(express.urlencoded({ extended: true }));
 //   exposedHeaders: ['Set-Cookie']
 // }));
 
-
 // CORS configuration — MUST come before routes
 const allowedOrigins = ['https://voting-app-frontend-jaj1.onrender.com'];
 
@@ -65,6 +64,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   exposedHeaders: ['Set-Cookie']
 }));
+
 
 
 
@@ -94,7 +94,7 @@ app.get('/', (req, res) => {
 });
 
 // Handle preflight CORS requests
-app.options('*', cors());
+// app.options('*', cors());
 
 app.use('/api', topicRoutes(pool));
 
