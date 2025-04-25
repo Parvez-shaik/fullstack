@@ -40,13 +40,32 @@ app.use(express.urlencoded({ extended: true }));
 //   exposedHeaders: ['Set-Cookie']
 // }));
 
+// app.use(cors({
+//   origin: ['https://voting-app-frontend-jaj1.onrender.com'],
+//   credentials: true,
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+//   exposedHeaders: ['Set-Cookie']
+// }));
+
+
+// CORS configuration — MUST come before routes
+const allowedOrigins = ['https://voting-app-frontend-jaj1.onrender.com'];
+
 app.use(cors({
-  origin: ['https://voting-app-frontend-jaj1.onrender.com'],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   exposedHeaders: ['Set-Cookie']
 }));
+
 
 
 // Session configuration
@@ -73,6 +92,9 @@ app.use((err, req, res, next) => {
 app.get('/', (req, res) => {
   res.send('Welcome to the Voting App API');
 });
+
+// Handle preflight CORS requests
+app.options('*', cors());
 
 app.use('/api', topicRoutes(pool));
 
