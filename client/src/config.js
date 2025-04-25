@@ -1,5 +1,5 @@
 // API Configuration
-const API_URL = process.env.REACT_APP_API_URL || 'https://voting-app-backend-b7co.onrender.com';
+const API_URL = (process.env.REACT_APP_API_URL || 'https://voting-app-backend-b7co.onrender.com').replace(/\/$/, '');
 
 export const API_ENDPOINTS = {
   register: `${API_URL}/api/register`,
