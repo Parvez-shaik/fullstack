@@ -1,7 +1,8 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../config';
-import jwt_decode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
+
 
 // Configure axios defaults
 axios.defaults.withCredentials = true;
@@ -28,7 +29,8 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     if (token) {
       try {
-        const decoded = jwt_decode(token);
+        const decoded = jwtDecode(token);
+
         setUser(decoded);
       } catch (err) {
         console.error('Invalid token');
