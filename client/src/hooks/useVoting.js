@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { API_ENDPOINTS } from '../config';
 
 // Configure axios defaults
-axios.defaults.withCredentials = true;
+// axios.defaults.withCredentials = true;
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 export const useVoting = () => {
@@ -50,83 +50,77 @@ export const useVoting = () => {
     if (!user) {
       return { success: false, error: "Please log in to create topics" };
     }
-
+  
     if (user.role !== "admin") {
       return { success: false, error: "Only admins can create topics" };
     }
-
+  
     try {
-      console.log('Creating topic with user:', user);
+      const token = localStorage.getItem('token');
       const response = await axios.post(
         API_ENDPOINTS.topics,
         { name: topicName },
-        { 
-          withCredentials: true,
+        {
           headers: {
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         }
       );
-      console.log('Create topic response:', response.data);
       await fetchTopics();
       return { success: true };
     } catch (error) {
-      console.error('Error creating topic:', error);
-      if (error.response) {
-        console.error('Error response:', error.response.data);
-        console.error('Error status:', error.response.status);
-      }
-      const errorMessage = error.response?.data?.message || 
-                         (error.response?.status === 403 ? "You don't have permission to create topics" : 
-                         error.response?.status === 401 ? "Please log in again" : "Failed to create topic");
+      const errorMessage = error.response?.data?.message ||
+        (error.response?.status === 403
+          ? "You don't have permission to create topics"
+          : error.response?.status === 401
+            ? "Please log in again"
+            : "Failed to create topic");
+  
       return { success: false, error: errorMessage };
     }
   };
+  
 
   const vote = async (topicId, voteType) => {
     if (!user) {
       throw new Error("Please log in to vote");
     }
-
+  
     try {
+      const token = localStorage.getItem('token');
       await axios.post(
         API_ENDPOINTS.vote,
         { topicId, vote: voteType === 'yes' ? 1 : 0 },
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
       );
       await fetchVotes(topicId);
       return { success: true };
     } catch (error) {
-      console.error('Error voting:', error);
-      if (error.response) {
-        console.error('Error response:', error.response.data);
-        console.error('Error status:', error.response.status);
-      }
-      return { 
-        success: false, 
-        error: error.response?.data?.message || "Voting failed" 
+      return {
+        success: false,
+        error: error.response?.data?.message || "Voting failed"
       };
     }
   };
+  
 
   const fetchVotes = async (topicId) => {
     try {
-      const response = await axios.get(API_ENDPOINTS.votes(topicId), {
-        withCredentials: true
-      });
+      const response = await axios.get(API_ENDPOINTS.votes(topicId));
       setVotes((prev) => ({
         ...prev,
         [topicId]: response.data,
       }));
     } catch (error) {
-      console.error("Error fetching votes:", error);
-      if (error.response) {
-        console.error('Error response:', error.response.data);
-        console.error('Error status:', error.response.status);
-      }
       setError(error.response?.data?.message || 'Failed to fetch votes');
     }
   };
+  
 
   return {
     topics,

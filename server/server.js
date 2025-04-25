@@ -52,6 +52,8 @@ app.use(express.urlencoded({ extended: true }));
 // CORS configuration — MUST come before routes
 const allowedOrigins = ['https://voting-app-frontend-jaj1.onrender.com'];
 
+// const allowedOrigins = ['https://voting-app-frontend-jaj1.onrender.com'];
+
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -65,6 +67,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   exposedHeaders: ['Set-Cookie']
 }));
+
 
 
 
@@ -83,21 +86,10 @@ app.use(cors({
 //   }  
 // }));
 
+// const MemoryStore = require('memorystore')(session);
 
-app.use(session({
-  store: new MemoryStore({
-    checkPeriod: 86400000 // prune expired entries every 24h
-  }),
-  secret: process.env.SESSION_SECRET || '313eee9e908688eab48d3640c71fab121afad9616d355209fcb9d25e01a8859c',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production', // true for HTTPS
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
-}));
+
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {
