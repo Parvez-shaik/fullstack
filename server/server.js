@@ -88,7 +88,7 @@ app.use(session({
   store: new MemoryStore({
     checkPeriod: 86400000 // prune expired entries every 24h
   }),
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  secret: process.env.SESSION_SECRET || '313eee9e908688eab48d3640c71fab121afad9616d355209fcb9d25e01a8859c',
   resave: false,
   saveUninitialized: false,
   cookie: {
