@@ -30,10 +30,10 @@ module.exports = function (pool) {
         user: req.session.user
       });
     } catch (err) {
+      console.error('Registration error:', err);
       if (err.code === '23505') { // PostgreSQL unique violation
         return res.status(400).json({ message: 'Email already registered' });
       }
-      console.error('Registration error:', err);
       return res.status(500).json({ error: 'Registration failed' });
     }
   });
@@ -89,41 +89,11 @@ module.exports = function (pool) {
   // Logout
   router.post('/logout', (req, res) => {
     req.session.destroy((err) => {
-      if (err) return res.status(500).json({ error: 'Logout failed' });
-      res.status(200).json({ message: 'Logged out successfully' });
-    });
-  });
-
-  // Admin creates a new topic
-  router.post('/topics', (req, res) => {
-    console.log('Create topic request:', {
-      sessionId: req.sessionID,
-      user: req.session.user,
-      cookies: req.headers.cookie,
-      body: req.body
-    });
-
-    if (!req.session.user) {
-      console.log('No user in session');
-      return res.status(401).json({ message: 'Not logged in' });
-    }
-
-    if (req.session.user.role !== 'admin') {
-      console.log('User is not admin:', req.session.user);
-      return res.status(403).json({ message: 'Unauthorized. Admins only.' });
-    }
-
-    const { name } = req.body;
-    if (!name) {
-      return res.status(400).json({ message: 'Topic name is required' });
-    }
-
-    Topic.createTopic(pool, name, req.session.user.id, (err, result) => {
       if (err) {
-        console.error('Error creating topic:', err);
-        return res.status(500).json({ error: 'Error creating topic' });
+        console.error('Logout error:', err);
+        return res.status(500).json({ error: 'Logout failed' });
       }
-      res.status(201).json({ id: result.insertId, name });
+      res.status(200).json({ message: 'Logged out successfully' });
     });
   });
 
@@ -152,8 +122,44 @@ module.exports = function (pool) {
     }
   });
 
-  // User votes on a topic (Yes/No)
-  router.post('/vote', (req, res) => {
+  // Admin creates a new topic
+  router.post('/topics', async (req, res) => {
+    console.log('Create topic request:', {
+      sessionId: req.sessionID,
+      user: req.session.user,
+      cookies: req.headers.cookie,
+      body: req.body
+    });
+
+    if (!req.session.user) {
+      console.log('No user in session');
+      return res.status(401).json({ message: 'Not logged in' });
+    }
+
+    if (req.session.user.role !== 'admin') {
+      console.log('User is not admin:', req.session.user);
+      return res.status(403).json({ message: 'Unauthorized. Admins only.' });
+    }
+
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ message: 'Topic name is required' });
+    }
+
+    try {
+      const result = await pool.query(
+        'INSERT INTO topics (name, created_by) VALUES ($1, $2) RETURNING *',
+        [name, req.session.user.id]
+      );
+      res.status(201).json(result.rows[0]);
+    } catch (err) {
+      console.error('Error creating topic:', err);
+      res.status(500).json({ error: 'Error creating topic' });
+    }
+  });
+
+  // User votes on a topic
+  router.post('/vote', async (req, res) => {
     if (!req.session.user) {
       return res.status(401).json({ message: 'User not logged in' });
     }
@@ -163,40 +169,50 @@ module.exports = function (pool) {
       return res.status(400).json({ message: 'Invalid vote input' });
     }
 
-    // Check if user has already voted
-    pool.query(
-      'SELECT * FROM votes WHERE user_id = $1 AND topic_id = $2',
-      [req.session.user.id, topicId],
-      (err, results) => {
-        if (err) return res.status(500).json({ error: 'Error checking vote' });
+    try {
+      // Check if user has already voted
+      const existingVote = await pool.query(
+        'SELECT * FROM votes WHERE user_id = $1 AND topic_id = $2',
+        [req.session.user.id, topicId]
+      );
 
-        if (results.rows.length > 0) {
-          return res.status(400).json({ message: 'You have already voted on this topic' });
-        }
-
-        // Insert vote
-        pool.query(
-          'INSERT INTO votes (user_id, topic_id, vote) VALUES ($1, $2, $3)',
-          [req.session.user.id, topicId, vote],
-          (err) => {
-            if (err) return res.status(500).json({ error: 'Error recording vote' });
-            res.status(200).json({ message: 'Vote recorded successfully' });
-          }
-        );
+      if (existingVote.rows.length > 0) {
+        return res.status(400).json({ message: 'You have already voted on this topic' });
       }
-    );
+
+      // Insert vote
+      await pool.query(
+        'INSERT INTO votes (user_id, topic_id, vote) VALUES ($1, $2, $3)',
+        [req.session.user.id, topicId, vote]
+      );
+      res.status(200).json({ message: 'Vote recorded successfully' });
+    } catch (err) {
+      console.error('Error recording vote:', err);
+      res.status(500).json({ error: 'Error recording vote' });
+    }
   });
 
   // Get vote results for a topic
-  router.get('/votes/:topicId', (req, res) => {
+  router.get('/votes/:topicId', async (req, res) => {
     const { topicId } = req.params;
-    Topic.getVoteCounts(pool, topicId, (err, results) => {
-      if (err) return res.status(500).json({ error: 'Error fetching vote counts' });
+    try {
+      const yesVotes = await pool.query(
+        'SELECT COUNT(*) AS yes_votes FROM votes WHERE topic_id = $1 AND vote = 1',
+        [topicId]
+      );
+      const noVotes = await pool.query(
+        'SELECT COUNT(*) AS no_votes FROM votes WHERE topic_id = $1 AND vote = 0',
+        [topicId]
+      );
       res.json({
         topicId,
-        ...results
+        yes_votes: parseInt(yesVotes.rows[0].yes_votes),
+        no_votes: parseInt(noVotes.rows[0].no_votes)
       });
-    });
+    } catch (err) {
+      console.error('Error fetching vote counts:', err);
+      res.status(500).json({ error: 'Error fetching vote counts' });
+    }
   });
 
   return router;

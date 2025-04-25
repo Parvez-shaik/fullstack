@@ -9,33 +9,6 @@ require('dotenv').config({ path: path.resolve(process.cwd(), '.env') });
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? 'https://voting-app-frontend-jaj1.onrender.com'
-    : 'http://localhost:3000',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-  exposedHeaders: ['Set-Cookie']
-}));
-
-app.use(express.json());
-
-// Session configuration
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    domain: process.env.NODE_ENV === 'production' ? '.render.com' : undefined
-  }
-}));
-
 // Database configuration
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -51,6 +24,35 @@ pool.connect((err, client, release) => {
   console.log('Connected to the database!');
   release();
 });
+
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://voting-app-frontend-jaj1.onrender.com', 'https://voting-app-backend-b7co.onrender.com']
+    : 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+  exposedHeaders: ['Set-Cookie']
+}));
+
+// Session configuration
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    domain: process.env.NODE_ENV === 'production' ? '.render.com' : undefined
+  }
+}));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -68,4 +70,6 @@ app.use('/api', topicRoutes(pool));
 // Start server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
+  console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+  console.log(`CORS Origin: ${process.env.NODE_ENV === 'production' ? 'https://voting-app-frontend-jaj1.onrender.com' : 'http://localhost:3000'}`);
 });
