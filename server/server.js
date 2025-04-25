@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 const session = require('express-session');
+const MemoryStore = require('memorystore')(session); // ✅ Add this line
 const topicRoutes = require('./routes/api');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(process.cwd(), '.env') });
@@ -69,17 +70,33 @@ app.use(cors({
 
 
 // Session configuration
+// app.use(session({
+//   secret: process.env.SESSION_SECRET || 'your-secret-key',
+//   resave: false,
+//   saveUninitialized: false,
+//   cookie: {
+//     secure: true, // required for HTTPS
+//     sameSite: 'none', // allows cross-site
+//     httpOnly: true,
+//     maxAge: 24 * 60 * 60 * 1000 // 24 hours
+//     // 🔴 DO NOT add domain
+//   }  
+// }));
+
+
 app.use(session({
+  store: new MemoryStore({
+    checkPeriod: 86400000 // prune expired entries every 24h
+  }),
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: true, // required for HTTPS
-    sameSite: 'none', // allows cross-site
+    secure: process.env.NODE_ENV === 'production', // true for HTTPS
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    // 🔴 DO NOT add domain
-  }  
+  }
 }));
 
 // Error handling middleware
