@@ -6,6 +6,12 @@ import { API_ENDPOINTS } from '../config';
 axios.defaults.withCredentials = true;
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 
+// Debug function to log request details
+const logRequest = (method, url, data = null) => {
+  console.log(`[${method}] ${url}`);
+  if (data) console.log('Request data:', data);
+};
+
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -17,9 +23,11 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const fetchUserSession = async () => {
+    const url = API_ENDPOINTS.session;
+    logRequest('GET', url);
+    
     try {
-      console.log('Fetching session from:', API_ENDPOINTS.session);
-      const response = await axios.get(API_ENDPOINTS.session, {
+      const response = await axios.get(url, {
         withCredentials: true
       });
       console.log('Session response:', response.data);
@@ -32,6 +40,7 @@ export const AuthProvider = ({ children }) => {
       if (error.response) {
         console.error('Error response:', error.response.data);
         console.error('Error status:', error.response.status);
+        console.error('Error URL:', error.config.url);
       }
     } finally {
       setLoading(false);
@@ -39,13 +48,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
+    const url = API_ENDPOINTS.login;
+    const data = { email, password };
+    logRequest('POST', url, data);
+    
     try {
-      console.log('Attempting login to:', API_ENDPOINTS.login);
-      const response = await axios.post(
-        API_ENDPOINTS.login,
-        { email, password },
-        { withCredentials: true }
-      );
+      const response = await axios.post(url, data, {
+        withCredentials: true
+      });
       console.log('Login response:', response.data);
       
       if (response.data.user) {
@@ -58,6 +68,7 @@ export const AuthProvider = ({ children }) => {
       if (error.response) {
         console.error('Error response:', error.response.data);
         console.error('Error status:', error.response.status);
+        console.error('Error URL:', error.config.url);
       }
       return { 
         success: false, 
@@ -67,13 +78,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (username, email, password) => {
+    const url = API_ENDPOINTS.register;
+    const data = { username, email, password, role: 'user' };
+    logRequest('POST', url, data);
+    
     try {
-      console.log('Attempting registration to:', API_ENDPOINTS.register);
-      const response = await axios.post(
-        API_ENDPOINTS.register,
-        { username, email, password, role: 'user' },
-        { withCredentials: true }
-      );
+      const response = await axios.post(url, data, {
+        withCredentials: true
+      });
       console.log('Registration response:', response.data);
       
       if (response.data.user) {
@@ -86,6 +98,7 @@ export const AuthProvider = ({ children }) => {
       if (error.response) {
         console.error('Error response:', error.response.data);
         console.error('Error status:', error.response.status);
+        console.error('Error URL:', error.config.url);
       }
       return { 
         success: false, 
@@ -95,15 +108,18 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
+    const url = API_ENDPOINTS.logout;
+    logRequest('POST', url);
+    
     try {
-      console.log('Attempting logout to:', API_ENDPOINTS.logout);
-      await axios.post(API_ENDPOINTS.logout, {}, { withCredentials: true });
+      await axios.post(url, {}, { withCredentials: true });
       setUser(null);
     } catch (error) {
       console.error('Logout error:', error);
       if (error.response) {
         console.error('Error response:', error.response.data);
         console.error('Error status:', error.response.status);
+        console.error('Error URL:', error.config.url);
       }
     }
   };

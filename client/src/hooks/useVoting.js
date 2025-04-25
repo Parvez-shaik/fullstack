@@ -23,14 +23,9 @@ export const useVoting = () => {
       setLoading(true);
       setError(null);
       console.log('Fetching topics from:', API_ENDPOINTS.topics);
-      
       const response = await axios.get(API_ENDPOINTS.topics, {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json',
-        }
+        withCredentials: true
       });
-      
       console.log('Topics response:', response.data);
       
       if (response.data && Array.isArray(response.data)) {
@@ -44,24 +39,10 @@ export const useVoting = () => {
       if (err.response) {
         console.error('Error response:', err.response.data);
         console.error('Error status:', err.response.status);
-        console.error('Error headers:', err.response.headers);
       }
       setError(err.response?.data?.error || err.message || 'Failed to fetch topics');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchVotes = async (topicId) => {
-    try {
-      const response = await axios.get(API_ENDPOINTS.votes(topicId));
-      setVotes((prev) => ({
-        ...prev,
-        [topicId]: response.data,
-      }));
-    } catch (error) {
-      console.error("Error fetching votes:", error);
-      setError(error.response?.data?.message || 'Failed to fetch votes');
     }
   };
 
@@ -75,16 +56,29 @@ export const useVoting = () => {
     }
 
     try {
+      console.log('Creating topic with user:', user);
       const response = await axios.post(
         API_ENDPOINTS.topics,
-        { name: topicName }
+        { name: topicName },
+        { 
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
       );
+      console.log('Create topic response:', response.data);
       await fetchTopics();
       return { success: true };
     } catch (error) {
       console.error('Error creating topic:', error);
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        console.error('Error status:', error.response.status);
+      }
       const errorMessage = error.response?.data?.message || 
-                         (error.response?.status === 403 ? "You don't have permission to create topics" : "Failed to create topic");
+                         (error.response?.status === 403 ? "You don't have permission to create topics" : 
+                         error.response?.status === 401 ? "Please log in again" : "Failed to create topic");
       return { success: false, error: errorMessage };
     }
   };
@@ -104,10 +98,33 @@ export const useVoting = () => {
       return { success: true };
     } catch (error) {
       console.error('Error voting:', error);
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        console.error('Error status:', error.response.status);
+      }
       return { 
         success: false, 
         error: error.response?.data?.message || "Voting failed" 
       };
+    }
+  };
+
+  const fetchVotes = async (topicId) => {
+    try {
+      const response = await axios.get(API_ENDPOINTS.votes(topicId), {
+        withCredentials: true
+      });
+      setVotes((prev) => ({
+        ...prev,
+        [topicId]: response.data,
+      }));
+    } catch (error) {
+      console.error("Error fetching votes:", error);
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        console.error('Error status:', error.response.status);
+      }
+      setError(error.response?.data?.message || 'Failed to fetch votes');
     }
   };
 

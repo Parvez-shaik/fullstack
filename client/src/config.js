@@ -1,5 +1,6 @@
 // API Configuration
-const API_URL = (process.env.REACT_APP_API_URL || 'https://voting-app-backend-b7co.onrender.com').replace(/\/$/, '');
+const cleanUrl = (url) => url.replace(/\/+$/, ''); // Remove trailing slashes
+const API_URL = cleanUrl(process.env.REACT_APP_API_URL || 'https://voting-app-backend-b7co.onrender.com');
 
 export const API_ENDPOINTS = {
   register: `${API_URL}/api/register`,

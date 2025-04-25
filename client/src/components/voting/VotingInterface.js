@@ -12,6 +12,16 @@ const VotingInterface = () => {
     e.preventDefault();
     setError('');
     
+    if (!user) {
+      setError('Please log in to create topics');
+      return;
+    }
+
+    if (user.role !== 'admin') {
+      setError('Only admins can create topics');
+      return;
+    }
+
     const result = await createTopic(topicName);
     if (!result.success) {
       setError(result.error);
@@ -21,6 +31,11 @@ const VotingInterface = () => {
   };
 
   const handleVote = async (topicId, voteType) => {
+    if (!user) {
+      setError('Please log in to vote');
+      return;
+    }
+
     try {
       const result = await vote(topicId, voteType);
       if (!result.success) {
@@ -70,11 +85,13 @@ const VotingInterface = () => {
           {topicsList.map((topic) => (
             <li key={topic.id} className="topic-item">
               <strong>{topic.name}</strong>
-              <div className="vote-buttons">
-                <button onClick={() => handleVote(topic.id, 'yes')}>Yes</button>
-                <button onClick={() => handleVote(topic.id, 'no')}>No</button>
-                <button onClick={() => fetchVotes(topic.id)}>Show Votes</button>
-              </div>
+              {user && (
+                <div className="vote-buttons">
+                  <button onClick={() => handleVote(topic.id, 'yes')}>Yes</button>
+                  <button onClick={() => handleVote(topic.id, 'no')}>No</button>
+                  <button onClick={() => fetchVotes(topic.id)}>Show Votes</button>
+                </div>
+              )}
               {votes[topic.id] && (
                 <div className="vote-counts">
                   <span>Yes: {votes[topic.id].yes_votes}</span>
