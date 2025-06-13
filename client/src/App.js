@@ -1,6 +1,8 @@
-import React from 'react';
+// App.js
+import React, { useState } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext';
+import Footer from './components/Footer';
 import LoginForm from './components/auth/LoginForm';
 import RegisterForm from './components/auth/RegisterForm';
 import VotingInterface from './components/voting/VotingInterface';
@@ -8,17 +10,29 @@ import './App.css';
 
 const AppContent = () => {
   const { user, logout } = useAuth();
+  const [showLogin, setShowLogin] = useState(true);
 
   return (
-    <div className="app-container">
-      <h1>Smart Poll</h1>
+    <div className="auth-wrapper">
       {!user ? (
-        <div className="auth-container">
-          <LoginForm />
-          <RegisterForm />
-        </div>
+        <>
+          <div className="auth-card">
+            <div className="auth-illustration">
+              <img src="/assets/waving-bird.gif" alt="Waving Bird" className="auth-gif" />
+            </div>
+            <div className="auth-form-section">
+              <h2>{showLogin ? "Log in" : "Sign up"}</h2>
+              {showLogin ? <LoginForm /> : <RegisterForm />}
+              <button onClick={() => setShowLogin(!showLogin)} className="toggle-btn">
+                {showLogin ? "Don't have an account? Sign Up" : "Already have an account? Login"}
+              </button>
+            </div>
+          </div>
+
+          <Footer />
+        </>
       ) : (
-        <div>
+        <div className="app-container-initial">
           <div className="user-info">
             <p>Welcome, {user.username} ({user.role})</p>
             <button onClick={logout}>Logout</button>
@@ -26,28 +40,6 @@ const AppContent = () => {
           <VotingInterface />
         </div>
       )}
-
-      <div className="footer">
-        <h4>Our Team</h4>
-        <div className="team-members">
-          <div className="team-member">
-            <span className="member-name">Yashwanth Gundla</span>
-            <span className="member-role">Frontend Developer</span>
-          </div>
-          <div className="team-member">
-            <span className="member-name">Jayasairohit Valasapalli</span>
-            <span className="member-role">Backend Developer</span>
-          </div>
-          <div className="team-member">
-            <span className="member-name">Akhila Gotike</span>
-            <span className="member-role">Tester</span>
-          </div>
-          <div className="team-member">
-            <span className="member-name">Tharun Javaji</span>
-            <span className="member-role">Quailty Assurance</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

@@ -18,8 +18,7 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="auth-form">
-      <h2>Login</h2>
+    <div>
       {error && <div className="error-message">{error}</div>}
       <form onSubmit={handleSubmit}>
         <input
