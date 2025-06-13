@@ -11,7 +11,6 @@ const RegisterForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
     const result = await register(username, email, password);
     if (!result.success) {
       setError(result.error);
@@ -21,40 +20,42 @@ const RegisterForm = () => {
   };
 
   return (
-    <div className="auth-form">
-      <h2>Register</h2>
-      {error && <div className="error-message">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit">Register</button>
-      </form>
-    </div>
+    <form className="auth-form" onSubmit={handleSubmit}>
+      {error && (
+        <div style={{
+          background: '#ffe5e5',
+          color: '#b00020',
+          borderRadius: '12px',
+          padding: '12px 16px',
+          marginBottom: 12,
+          fontSize: '1rem',
+          border: '1px solid #ffb3b3',
+          textAlign: 'center',
+        }}>{error}</div>
+      )}
+      <input
+        type="text"
+        placeholder="Username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        required
+      />
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+      />
+      <button type="submit" className="auth-btn-primary">Sign up</button>
+    </form>
   );
 };
 
