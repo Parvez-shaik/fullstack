@@ -8,6 +8,8 @@ import RegisterForm from './components/auth/RegisterForm';
 import VotingInterface from './components/voting/VotingInterface';
 // import ThemeToggle from './components/ThemeToggle';
 import LoadingSpinner from './components/LoadingSpinner';
+import { Box, Paper, Typography, Button, Stack, Avatar } from '@mui/material';
+import LogoutIcon from '@mui/icons-material/Logout';
 import './App.css';
 
 const AuthIllustration = () => (
@@ -116,13 +118,25 @@ const AppContent = () => {
           </div>
         </div>
       ) : (
-        <section style={{ maxWidth: 700, margin: '0 auto', padding: '48px 24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-            <p style={{ fontWeight: 500 }}>Welcome, {user.username} ({user.role})</p>
-            <button onClick={() => handleAuthAction(logout)} style={{ minWidth: 100 }}>Logout</button>
-          </div>
+        <Box sx={{ maxWidth: 700, mx: 'auto', mt: 6, p: 2 }}>
+          <Paper elevation={2} sx={{ p: 2, mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Stack direction="row" alignItems="center" spacing={2}>
+              <Avatar>{user.username[0].toUpperCase()}</Avatar>
+              <Typography variant="h6">
+                Welcome, {user.username} ({user.role})
+              </Typography>
+            </Stack>
+            <Button
+              variant="contained"
+              color="error"
+              startIcon={<LogoutIcon />}
+              onClick={() => handleAuthAction(logout)}
+            >
+              Logout
+            </Button>
+          </Paper>
           <VotingInterface />
-        </section>
+        </Box>
       )}
       <Footer />
     </main>

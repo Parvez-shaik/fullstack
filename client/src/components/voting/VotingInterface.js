@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useVoting } from '../../hooks/useVoting';
+import {
+  Box,
+  Paper,
+  Typography,
+  Button,
+  TextField,
+  Stack,
+  Divider,
+  Alert
+} from '@mui/material';
 
 const VotingInterface = () => {
   const { user } = useAuth();
@@ -43,61 +53,62 @@ const VotingInterface = () => {
   };
 
   if (loading) {
-    return <p style={{ textAlign: 'center', color: '#6e6e73' }}>Loading topics...</p>;
+    return <Typography align="center" color="text.secondary">Loading topics...</Typography>;
   }
   if (votingError) {
-    return <div style={{ background: '#ffe5e5', color: '#b00020', borderRadius: '12px', padding: '12px 16px', margin: '24px auto', fontSize: '1rem', border: '1px solid #ffb3b3', textAlign: 'center', maxWidth: 500 }}>Error loading topics: {votingError}</div>;
+    return <Alert severity="error" sx={{ my: 4, maxWidth: 500, mx: 'auto' }}>Error loading topics: {votingError}</Alert>;
   }
 
   const topicsList = Array.isArray(topics) ? topics : [];
 
   return (
-    <section style={{ background: 'var(--section-bg)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow)', padding: '48px 24px', border: '1px solid var(--divider)', margin: '0 auto', maxWidth: 700 }}>
+    <Box sx={{ maxWidth: 700, mx: 'auto', mt: 4 }}>
       {error && (
-        <div style={{ background: '#ffe5e5', color: '#b00020', borderRadius: '12px', padding: '12px 16px', marginBottom: 16, fontSize: '1rem', border: '1px solid #ffb3b3', textAlign: 'center' }}>{error}</div>
+        <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
       )}
       {user?.role === 'admin' && (
-        <div style={{ marginBottom: 32 }}>
-          <h2 style={{ marginBottom: 12 }}>Create Topic</h2>
-          <form onSubmit={handleCreateTopic} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <input
-              type="text"
+        <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
+          <Typography variant="h5" gutterBottom>Create Topic</Typography>
+          <Box component="form" onSubmit={handleCreateTopic} sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <TextField
+              label="Topic Name"
               value={topicName}
-              onChange={(e) => setTopicName(e.target.value)}
-              placeholder="Topic Name"
+              onChange={e => setTopicName(e.target.value)}
               required
-              style={{ flex: 1 }}
+              fullWidth
+              size="medium"
             />
-            <button type="submit">Create</button>
-          </form>
-        </div>
+            <Button type="submit" variant="contained" color="success" size="large">
+              Create
+            </Button>
+          </Box>
+        </Paper>
       )}
-      <h2 style={{ marginBottom: 12 }}>Topics</h2>
+      <Typography variant="h5" sx={{ mb: 2 }}>Topics</Typography>
       {topicsList.length === 0 ? (
-        <p style={{ color: '#6e6e73' }}>No topics available</p>
+        <Typography color="text.secondary">No topics available</Typography>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        <Stack spacing={3}>
           {topicsList.map((topic) => (
-            <li key={topic.id} style={{ marginBottom: 32, paddingBottom: 24, borderBottom: '1px solid var(--divider)' }}>
-              <div style={{ fontWeight: 600, fontSize: '1.15rem', marginBottom: 8 }}>{topic.name}</div>
+            <Paper key={topic.id} elevation={1} sx={{ p: 2 }}>
+              <Typography variant="subtitle1" fontWeight={600}>{topic.name}</Typography>
               {user && (
-                <div style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
-                  <button onClick={() => handleVote(topic.id, 'yes')}>Yes</button>
-                  <button onClick={() => handleVote(topic.id, 'no')}>No</button>
-                  <button onClick={() => fetchVotes(topic.id)} style={{ background: '#f5f5f7', color: 'var(--accent)', border: '1.5px solid var(--accent)', fontWeight: 500 }}>Show Votes</button>
-                </div>
+                <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
+                  <Button variant="contained" color="success" onClick={() => handleVote(topic.id, 1)}>Yes</Button>
+                  <Button variant="contained" color="error" onClick={() => handleVote(topic.id, 0)}>No</Button>
+                  <Button variant="outlined" onClick={() => fetchVotes(topic.id)}>Show Votes</Button>
+                </Stack>
               )}
               {votes[topic.id] && (
-                <div style={{ color: '#6e6e73', fontSize: '1rem', marginTop: 4 }}>
-                  <span>Yes: {votes[topic.id].yes_votes}</span>{'  '}
-                  <span style={{ marginLeft: 16 }}>No: {votes[topic.id].no_votes}</span>
-                </div>
+                <Typography sx={{ mt: 1 }} color="text.secondary">
+                  Yes: {votes[topic.id].yes_votes} &nbsp; No: {votes[topic.id].no_votes}
+                </Typography>
               )}
-            </li>
+            </Paper>
           ))}
-        </ul>
+        </Stack>
       )}
-    </section>
+    </Box>
   );
 };
 
