@@ -1,5 +1,5 @@
 // App.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext';
 import Footer from './components/Footer';
@@ -64,11 +64,55 @@ const DemoBanner = () => (
   </div>
 );
 
+const DemoLoginBanner = ({ onDemoLogin, visible }) => {
+  if (!visible) return null;
+  return (
+    <div style={{
+      position: 'fixed',
+      left: 0,
+      bottom: 0,
+      width: '100%',
+      background: '#fffbe6',
+      color: '#8a6d1b',
+      borderTop: '1.5px solid #ffe58f',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 2000,
+      padding: '16px 0',
+      boxShadow: '0 -2px 8px 0 rgba(0,0,0,0.04)'
+    }}>
+      <span style={{ fontWeight: 500, fontSize: '1.08rem', marginRight: 16 }}>
+        Try the app instantly with a demo admin login:
+      </span>
+      <button
+        style={{
+          background: '#1db96e',
+          color: '#fff',
+          border: 'none',
+          borderRadius: 8,
+          fontWeight: 600,
+          fontSize: '1.08rem',
+          padding: '10px 28px',
+          cursor: 'pointer',
+          boxShadow: '0 2px 8px 0 rgba(0,0,0,0.06)',
+          transition: 'background 0.2s',
+        }}
+        onClick={onDemoLogin}
+      >
+        Demo Login
+      </button>
+    </div>
+  );
+};
+
 const AppContent = () => {
   const { user, logout } = useAuth();
   const [showLogin, setShowLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
+  const [triggerDemoLogin, setTriggerDemoLogin] = useState(false);
+  const loginFormRef = useRef();
 
   useEffect(() => {
     fetch('/api/demo-status')
@@ -87,6 +131,13 @@ const AppContent = () => {
     }
   };
 
+  // Handler for demo login button
+  const handleDemoLogin = () => {
+    setShowLogin(true);
+    setTriggerDemoLogin(true);
+    setTimeout(() => setTriggerDemoLogin(false), 100); // Reset after triggering
+  };
+
   return (
     <main>
       {demoMode && <DemoBanner />}
@@ -95,28 +146,31 @@ const AppContent = () => {
       </div>
       {isLoading && <LoadingSpinner fullScreen />}
       {!user ? (
-        <div className="auth-main-container">
-          <div className="auth-box">
-            <div className="auth-illustration-col">
-              <AuthIllustration />
-            </div>
-            <div className="auth-form-col">
-              <h2>{showLogin ? "Log in" : "Sign up"}</h2>
-              <AuthSubtext isLogin={showLogin} />
-              <div className="auth-form" style={{ width: '100%' }}>
-                {showLogin ? <LoginForm /> : <RegisterForm />}
-                <SocialRow />
-                <div className="auth-switch-row">
-                  {showLogin ? (
-                    <>Don't have an account?<span className="auth-switch-link" onClick={() => handleAuthAction(() => setShowLogin(false))}>Sign up</span></>
-                  ) : (
-                    <>Already have an account?<span className="auth-switch-link" onClick={() => handleAuthAction(() => setShowLogin(true))}>Log in</span></>
-                  )}
+        <>
+          <div className="auth-main-container">
+            <div className="auth-box">
+              <div className="auth-illustration-col">
+                <AuthIllustration />
+              </div>
+              <div className="auth-form-col">
+                <h2>{showLogin ? "Log in" : "Sign up"}</h2>
+                <AuthSubtext isLogin={showLogin} />
+                <div className="auth-form" style={{ width: '100%' }}>
+                  {showLogin ? <LoginForm ref={loginFormRef} triggerDemoLogin={triggerDemoLogin} /> : <RegisterForm />}
+                  <SocialRow />
+                  <div className="auth-switch-row">
+                    {showLogin ? (
+                      <>Don't have an account?<span className="auth-switch-link" onClick={() => handleAuthAction(() => setShowLogin(false))}>Sign up</span></>
+                    ) : (
+                      <>Already have an account?<span className="auth-switch-link" onClick={() => handleAuthAction(() => setShowLogin(true))}>Log in</span></>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+          <DemoLoginBanner onDemoLogin={handleDemoLogin} visible={demoMode} />
+        </>
       ) : (
         <Box sx={{ maxWidth: 700, mx: 'auto', mt: 6, p: 2 }}>
           <Paper elevation={2} sx={{ p: 2, mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
