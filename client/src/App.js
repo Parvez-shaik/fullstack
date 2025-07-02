@@ -1,5 +1,5 @@
 // App.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext';
 import Footer from './components/Footer';
@@ -43,10 +43,37 @@ const SocialRow = () => (
   </div>
 );
 
+const DemoBanner = () => (
+  <div style={{
+    width: '100%',
+    background: '#fffbe6',
+    color: '#8a6d1b',
+    padding: '12px 0',
+    textAlign: 'center',
+    fontWeight: 600,
+    fontSize: '1.05rem',
+    borderBottom: '1.5px solid #ffe58f',
+    zIndex: 2000,
+    position: 'fixed',
+    top: 0,
+    left: 0
+  }}>
+    Demo Mode: Database is not connected. All data is for showcase only.
+  </div>
+);
+
 const AppContent = () => {
   const { user, logout } = useAuth();
   const [showLogin, setShowLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/demo-status')
+      .then(res => res.json())
+      .then(data => setDemoMode(data.demoMode))
+      .catch(() => setDemoMode(false));
+  }, []);
 
   // Simulate loading state for demonstration
   const handleAuthAction = async (action) => {
@@ -60,7 +87,8 @@ const AppContent = () => {
 
   return (
     <main>
-      <div style={{ position: 'fixed', top: 24, right: 24, zIndex: 1000 }}>
+      {demoMode && <DemoBanner />}
+      <div style={{ position: 'fixed', top: demoMode ? 48 : 24, right: 24, zIndex: 1000 }}>
         {/* <ThemeToggle /> */}
       </div>
       {isLoading && <LoadingSpinner fullScreen />}

@@ -20,12 +20,35 @@ function authenticateToken(req, res, next) {
   });
 }
 
+// Dummy data for demo mode
+const DEMO_TOPICS = [
+  { id: 1, name: 'Should we have a 4-day work week?', created_at: new Date(), created_by_username: 'admin', creator_role: 'admin' },
+  { id: 2, name: 'Is remote work here to stay?', created_at: new Date(), created_by_username: 'admin', creator_role: 'admin' },
+];
+let DEMO_VOTES = {
+  1: { yes_votes: 5, no_votes: 2 },
+  2: { yes_votes: 3, no_votes: 4 },
+};
+let DEMO_TOPIC_ID = 3;
 
-module.exports = function (pool) {
+module.exports = function (pool, demoMode = false) {
   const router = express.Router();
+
+  // Demo status endpoint
+  router.get('/demo-status', (req, res) => {
+    res.json({ demoMode });
+  });
 
   // Register a new user
   router.post('/register', async (req, res) => {
+    if (demoMode) {
+      // Accept any registration, but do nothing
+      return res.json({
+        message: 'Registration successful (demo mode)',
+        token: 'demo-token',
+        user: { id: 999, username: req.body.username, email: req.body.email, role: 'user' }
+      });
+    }
     const { username, email, password, role = 'user' } = req.body;
     if (!username || !email || !password) {
       return res.status(400).json({ message: 'All fields are required' });
@@ -70,6 +93,19 @@ res.json({
 
   // Login
   router.post('/login', async (req, res) => {
+    if (demoMode) {
+      const { email, password } = req.body;
+      if (email === 'admin@demo.com' && password === 'admin123') {
+        const token = jwt.sign({ id: 1, username: 'admin', email, role: 'admin' }, JWT_SECRET, { expiresIn: '24h' });
+        return res.json({
+          message: 'Login successful (demo mode)',
+          token,
+          user: { id: 1, username: 'admin', role: 'admin' }
+        });
+      } else {
+        return res.status(400).json({ message: 'Demo login: use admin@demo.com / admin123' });
+      }
+    }
     console.log('Login endpoint hit');
     const { email, password } = req.body;
     if (!email || !password) {
@@ -111,6 +147,9 @@ res.json({
 
   // Get all topics
   router.get('/topics', async (req, res) => {
+    if (demoMode) {
+      return res.json(DEMO_TOPICS);
+    }
     try {      
       const result = await pool.query(`
         SELECT 
@@ -133,6 +172,25 @@ res.json({
 
 // Admin creates a new topic (JWT-based)
 router.post('/topics', authenticateToken, async (req, res) => {
+  if (demoMode) {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Admins only (demo mode)' });
+    }
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ message: 'Topic name is required' });
+    }
+    const newTopic = {
+      id: DEMO_TOPIC_ID++,
+      name,
+      created_at: new Date(),
+      created_by_username: req.user.username,
+      creator_role: req.user.role
+    };
+    DEMO_TOPICS.unshift(newTopic);
+    DEMO_VOTES[newTopic.id] = { yes_votes: 0, no_votes: 0 };
+    return res.status(201).json(newTopic);
+  }
   // Only admins can create topics
   if (req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Admins only' });
@@ -162,6 +220,16 @@ router.post('/topics', authenticateToken, async (req, res) => {
 
   // User votes on a topic (JWT-based)
 router.post('/vote', authenticateToken, async (req, res) => {
+  if (demoMode) {
+    const { topicId, vote } = req.body;
+    if (!topicId || (vote !== 1 && vote !== 0)) {
+      return res.status(400).json({ message: 'Invalid vote input' });
+    }
+    if (!DEMO_VOTES[topicId]) DEMO_VOTES[topicId] = { yes_votes: 0, no_votes: 0 };
+    if (vote === 1) DEMO_VOTES[topicId].yes_votes++;
+    else DEMO_VOTES[topicId].no_votes++;
+    return res.status(200).json({ message: 'Vote recorded successfully (demo mode)' });
+  }
   const userId = req.user.id; // Extracted from the JWT token
   const { topicId, vote } = req.body;
 
@@ -197,6 +265,11 @@ router.post('/vote', authenticateToken, async (req, res) => {
 
   // Get vote results for a topic
   router.get('/votes/:topicId', async (req, res) => {
+    if (demoMode) {
+      const { topicId } = req.params;
+      const votes = DEMO_VOTES[topicId] || { yes_votes: 0, no_votes: 0 };
+      return res.json(votes);
+    }
     const { topicId } = req.params;
     try {
       const yesVotes = await pool.query(

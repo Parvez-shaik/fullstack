@@ -16,14 +16,19 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
+let demoMode = false;
+
 // Test database connection
 pool.connect((err, client, release) => {
   if (err) {
     console.error('Error connecting to the database:', err);
-    process.exit(1);
+    console.warn('Running in DEMO MODE with dummy data.');
+    demoMode = true;
+    // Do not exit process
+  } else {
+    console.log('Connected to the database!');
+    release();
   }
-  console.log('Connected to the database!');
-  release();
 });
 
 // Middleware
@@ -105,7 +110,7 @@ app.get('/', (req, res) => {
 // Handle preflight CORS requests
 // app.options('*', cors());
 
-app.use('/api', topicRoutes(pool));
+app.use('/api', topicRoutes(pool, demoMode));
 
 // Start server
 app.listen(port, () => {
