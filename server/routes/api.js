@@ -232,8 +232,11 @@ router.post('/vote', authenticateToken, async (req, res) => {
       return res.status(400).json({ message: 'Invalid vote input' });
     }
     if (!DEMO_VOTES[topicId]) DEMO_VOTES[topicId] = { yes_votes: 0, no_votes: 0 };
-    if (vote === 1) DEMO_VOTES[topicId].yes_votes++;
-    else DEMO_VOTES[topicId].no_votes++;
+    if (vote === 1) {
+      DEMO_VOTES[topicId].yes_votes++;
+    } else {
+      DEMO_VOTES[topicId].no_votes++;
+    }
     return res.status(200).json({ message: 'Vote recorded successfully (demo mode)' });
   }
   const userId = req.user.id; // Extracted from the JWT token
