@@ -31,16 +31,18 @@ let DEMO_VOTES = {
 };
 let DEMO_TOPIC_ID = 3;
 
-module.exports = function (pool, demoMode = false) {
+module.exports = function (pool) {
   const router = express.Router();
 
   // Demo status endpoint
   router.get('/demo-status', (req, res) => {
+    const demoMode = req.app.get('demoMode');
     res.json({ demoMode });
   });
 
   // Register a new user
   router.post('/register', async (req, res) => {
+    const demoMode = req.app.get('demoMode');
     if (demoMode) {
       // Accept any registration, but do nothing
       return res.json({
@@ -93,6 +95,7 @@ res.json({
 
   // Login
   router.post('/login', async (req, res) => {
+    const demoMode = req.app.get('demoMode');
     if (demoMode) {
       const { email, password } = req.body;
       if (email === 'admin@demo.com' && password === 'admin123') {
@@ -147,6 +150,7 @@ res.json({
 
   // Get all topics
   router.get('/topics', async (req, res) => {
+    const demoMode = req.app.get('demoMode');
     if (demoMode) {
       return res.json(DEMO_TOPICS);
     }
@@ -172,6 +176,7 @@ res.json({
 
 // Admin creates a new topic (JWT-based)
 router.post('/topics', authenticateToken, async (req, res) => {
+  const demoMode = req.app.get('demoMode');
   if (demoMode) {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Admins only (demo mode)' });
@@ -220,6 +225,7 @@ router.post('/topics', authenticateToken, async (req, res) => {
 
   // User votes on a topic (JWT-based)
 router.post('/vote', authenticateToken, async (req, res) => {
+  const demoMode = req.app.get('demoMode');
   if (demoMode) {
     const { topicId, vote } = req.body;
     if (!topicId || (vote !== 1 && vote !== 0)) {
@@ -265,6 +271,7 @@ router.post('/vote', authenticateToken, async (req, res) => {
 
   // Get vote results for a topic
   router.get('/votes/:topicId', async (req, res) => {
+    const demoMode = req.app.get('demoMode');
     if (demoMode) {
       const { topicId } = req.params;
       const votes = DEMO_VOTES[topicId] || { yes_votes: 0, no_votes: 0 };

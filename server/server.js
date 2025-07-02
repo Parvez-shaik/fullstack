@@ -24,10 +24,11 @@ pool.connect((err, client, release) => {
     console.error('Error connecting to the database:', err);
     console.warn('Running in DEMO MODE with dummy data.');
     demoMode = true;
-    // Do not exit process
+    app.set('demoMode', true); // Store on app
   } else {
     console.log('Connected to the database!');
     release();
+    app.set('demoMode', false); // Store on app
   }
 });
 
@@ -110,7 +111,7 @@ app.get('/', (req, res) => {
 // Handle preflight CORS requests
 // app.options('*', cors());
 
-app.use('/api', topicRoutes(pool, demoMode));
+app.use('/api', topicRoutes(pool));
 
 // Start server
 app.listen(port, () => {
